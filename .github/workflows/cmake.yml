@@ -1,0 +1,40 @@
+name: CMake
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install SystemC
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y build-essential cmake
+        wget https://www.accellera.org/images/downloads/standards/systemc/systemc-2.3.3.tar.gz
+        tar -xzf systemc-2.3.3.tar.gz
+        cd systemc-2.3.3
+        mkdir build && cd build
+        cmake .. -DCMAKE_CXX_STANDARD=17 -DCMAKE_BUILD_TYPE=Release
+        make -j4
+        sudo make install
+
+    - name: Create Build Directory
+      run: mkdir build
+
+    - name: Configure CMake
+      run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+
+    - name: Build
+      run: cmake --build build --config Release
+
+    - name: Test
+      run: |
+        cd build
+        ctest --output-on-failure 
